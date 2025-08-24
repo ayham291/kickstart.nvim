@@ -95,6 +95,7 @@ return {
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+        'gdb',
       },
     }
 
@@ -143,6 +144,50 @@ return {
         -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
         detached = vim.fn.has 'win32' == 0,
       },
+    }
+
+    -- -- Set up gdb for C/C++ debugging even go with c bindings
+    -- dap.adapters.gdb = {
+    --   type = 'executable',
+    --   command = '/usr/bin/gdb',
+    --   name = 'cppdbg',
+    -- }
+    --
+    dap.configurations.go = {
+      {
+        -- Must be "go" or it will be ignored by the plugin
+        type = 'go',
+        name = 'Debug Package with Args',
+        request = 'launch',
+        -- build with custom ldflags - "-extldflags '-Wl,--allow-multiple-definition'"
+        buildFlags = { '-ldflags', "-extldflags '-Wl,--allow-multiple-definition'" },
+        program = function()
+          -- path and arguments to the program to be debugged
+          return vim.fn.input('Path to program: ', vim.fn.getcwd() .. '/', 'file')
+        end,
+
+        -- ask user for program arguments
+        args = function()
+          -- arguments to the program to be debugged
+          local x = vim.fn.input 'args: '
+          if x == '' then
+            return nil
+          end
+          print(x)
+          return vim.split(x, ' ')
+        end,
+      },
+      --   {
+      --     name = 'Debug Go with GDB',
+      --     type = 'gdb',
+      --     request = 'launch',
+      --     program = function()
+      --       -- Prompt the user to select the compiled Go binary
+      --       return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+      --     end,
+      --     cwd = '${workspaceFolder}',
+      --     stopAtEntry = true,
+      --   },
     }
   end,
 }
