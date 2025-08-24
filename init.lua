@@ -38,7 +38,27 @@ vim.o.breakindent = true
 -- Save undo history
 vim.opt.undofile = true
 vim.opt.swapfile = false
-vim.opt.undodir = os.getenv 'HOME' .. '/.vim/undodir'
+
+local uv = vim.uv or vim.loop
+local undodir
+
+if vim.fn.has 'unix' == 1 then
+  undodir = os.getenv 'HOME' .. '/.vim/undodir'
+else
+  undodir = os.getenv 'HOME' .. '/AppData/Local/nvim/undodir'
+end
+
+-- make sure the directory exists
+if not uv.fs_stat(undodir) then
+  local ok, err = uv.fs_mkdir(undodir, 448) -- 0700
+  if ok then
+    vim.notify('Created undo directory at ' .. undodir, vim.log.levels.INFO)
+  else
+    vim.notify('Failed to create undo directory: ' .. tostring(err), vim.log.levels.ERROR)
+  end
+end
+
+vim.opt.undodir = undodir
 
 -- no wrap
 vim.opt.wrap = false
